@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Cyber Neon Defender - Retro Arcade</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="canvas-container">
+    <div class="crt-overlay"></div>
+    <div id="damageVignette"></div>
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Controles Móveis em Tela (Aparecem apenas durante a partida em dispositivos móveis) -->
+    <div id="mobileControls" class="mobile-hud">
+      <button id="btnMobilePause" class="mobile-btn-action" aria-label="Pausar Jogo">⏸️</button>
+      <button id="btnMobileBomb" class="mobile-btn-action bomb" aria-label="Lançar Bomba EMP">
+        <span class="bomb-icon">💣</span>
+        <span id="mobileBombCount" class="bomb-badge">1</span>
+      </button>
+    </div>
+
+    <!-- Menu Modal Interativo de Áudio / Configurações -->
+    <div id="settingsModal" class="modal-backdrop interactive">
+      <div class="modal-window">
+        <div class="modal-header">
+          <div class="modal-title">⚙️ PAINEL DE CONTROLE</div>
+          <button id="btnCloseModal" class="modal-close-icon" title="Fechar">✕</button>
+        </div>
+
+        <!-- Alternador Mudo / Ativo -->
+        <div class="setting-row">
+          <span class="setting-label">Áudio Geral</span>
+          <button id="modalAudioToggle" class="toggle-btn">🔊 LIGADO</button>
+        </div>
+
+        <!-- Slider de Volume -->
+        <div class="setting-row">
+          <span class="setting-label">Volume: <span id="volumeValue" style="color: #00ffff;">100%</span></span>
+          <input type="range" id="volumeSlider" min="0" max="100" value="100" class="custom-slider">
+        </div>
+
+        <!-- Teste de Efeitos Sonoros -->
+        <div class="setting-row">
+          <span class="setting-label">Testar Áudio</span>
+          <button id="btnTestSound" class="toggle-btn" style="border-color: #ffe600; color: #ffe600;">⚡ DISPARO</button>
+        </div>
+
+        <div style="border-top: 1px solid rgba(0, 255, 255, 0.2); padding-top: 10px; font-size: 11px; color: #8ec3e6; line-height: 1.5; text-align: center;">
+          Pressione <span class="key-badge">M</span> ou <span class="key-badge yellow">ESC</span> para fechar as configurações.
+        </div>
+
+        <button id="btnModalClose" class="arcade-btn" style="margin-top: 5px; padding: 10px 18px; font-size: 14px; width: 100%;">SALVAR E VOLTAR</button>
+      </div>
+    </div>
+
+    <!-- Menu Inicial -->
+    <div id="startScreen" class="ui-layer interactive">
+      <!-- Botão de Abertura do Menu posicionado exclusivamente na Tela Inicial -->
+      <button id="btnOpenSettings" class="menu-trigger-btn interactive" aria-label="Abrir Configurações de Áudio">⚙️ CONFIGURAÇÕES [ M ]</button>
+
+      <h1 class="neon-text" style="font-size: clamp(2rem, 6vw, 4rem); font-weight: 900; text-align: center; margin-bottom: 4px;">CYBER NEON</h1>
+      <h2 class="neon-pink" style="font-size: clamp(1.1rem, 3vw, 1.8rem); margin-bottom: 12px; letter-spacing: 6px;">DEFENDER</h2>
+
+      <!-- Painel Visual de Comandos -->
+      <div class="controls-grid">
+        <div class="control-card">
+          <div><span class="key-badge">W A S D</span> <span class="key-badge">TOUCH</span></div>
+          <div class="control-desc">PILOTAR / ARRASTAR</div>
+        </div>
+        <div class="control-card">
+          <div><span class="key-badge yellow">TIRO AUTOMÁTICO</span></div>
+          <div class="control-desc">DISPARO CONTÍNUO</div>
+        </div>
+        <div class="control-card">
+          <div><span class="key-badge pink">B</span> <span class="key-badge pink">BOTÃO 💣</span></div>
+          <div class="control-desc">BOMBA EMP ESPECIAL</div>
+        </div>
+        <div class="control-card">
+          <div><span class="key-badge">P</span> <span class="key-badge">ESC</span></div>
+          <div class="control-desc">PAUSA / MENU INICIAL</div>
+        </div>
+      </div>
+
+      <button id="btnStart" class="arcade-btn">INICIAR MISSÃO [ ENTER ]</button>
+
+      <div class="instructions-box" style="margin-top: 12px; padding: 10px 18px;">
+        <p style="color: #ffe600; font-size: 13px; margin-bottom: 2px;">⚡ TIRO 100% AUTOMÁTICO ATIVADO</p>
+        <p style="font-size: 12px;">Desvie dos projéteis, aniquile naves invasoras e colete escudos, bombas e power-ups!</p>
+      </div>
+      <p style="margin-top: 14px; font-size: 14px; color: #6bf;" class="record-badge">👑 RECORDE SUPREMO: <span id="menuHighScore" class="neon-yellow">0</span></p>
+    </div>
+
+    <!-- Tela de Game Over -->
+    <div id="gameOverScreen" class="ui-layer interactive" style="display: none;">
+      <h1 class="neon-pink" style="font-size: clamp(2.2rem, 7vw, 4.5rem); font-weight: 900; margin-bottom: 10px;">SISTEMA OFFLINE</h1>
+      <p style="font-size: 18px; margin-bottom: 8px;">PONTUAÇÃO FINAL: <span id="finalScore" class="neon-yellow" style="font-size: 24px; font-weight: bold;">0</span></p>
+      <p style="font-size: 16px; margin-bottom: 20px;">RECORDE SALVO: <span id="finalHighScore" class="neon-text">0</span></p>
+      <p id="newRecordAlert" style="font-size: 18px; color: #ffe600; font-weight: bold; margin-bottom: 15px; display: none;" class="record-badge">🎉 NOVO RECORDE REGISTRADO! 🎉</p>
+      <div style="display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;">
+        <button id="btnRestart" class="arcade-btn">JOGAR NOVAMENTE [ R ]</button>
+        <button id="btnBackToMenu" class="arcade-btn" style="border-color: #ff00ff; color: #ff00ff;">MENU PRINCIPAL [ ESC ]</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

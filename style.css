@@ -1,0 +1,440 @@
+/* ==========================================================================
+
+RESET & CONFIGURAÇÕES GERAIS
+========================================================================== */
+
+{
+box-sizing: border-box;
+margin: 0;
+padding: 0;
+user-select: none;
+-webkit-user-select: none;
+-webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+width: 100%;
+height: 100%;
+overflow: hidden;
+background-color: #030008;
+font-family: "Courier New", Courier, monospace;
+touch-action: none;
+}
+
+#canvas-container {
+position: relative;
+width: 100vw;
+height: 100vh;
+overflow: hidden;
+}
+
+canvas {
+display: block;
+width: 100%;
+height: 100%;
+background: radial-gradient(circle at center, #0f051d 0%, #030008 100%);
+}
+
+/* ==========================================================================
+2. EFEITOS DE TELA (CRT SCANLINES & VINHETA DE DANO)
+========================================================================== */
+
+.crt-overlay {
+position: absolute;
+top: 0;
+left: 0;
+z-index: 10;
+width: 100%;
+height: 100%;
+background:
+linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+background-size: 100% 3px, 3px 100%;
+pointer-events: none;
+}
+
+#damageVignette {
+position: absolute;
+top: 0;
+left: 0;
+z-index: 15;
+width: 100%;
+height: 100%;
+box-shadow: inset 0 0 70px rgba(255, 17, 68, 0.85);
+opacity: 0;
+pointer-events: none;
+transition: opacity 0.08s ease-out;
+}
+
+/* ==========================================================================
+3. CAMADAS DE INTERFACE (UI LAYERS)
+========================================================================== */
+
+.ui-layer {
+position: absolute;
+top: 0;
+left: 0;
+z-index: 20;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+width: 100%;
+height: 100%;
+padding: 20px;
+background: rgba(3, 0, 8, 0.82);
+text-align: center;
+backdrop-filter: blur(4px);
+}
+
+.interactive {
+pointer-events: auto;
+}
+
+/* Tipografia Neon */
+.neon-text {
+color: #00ffff;
+text-shadow:
+0 0 8px #00ffff,
+0 0 20px rgba(0, 255, 255, 0.6);
+}
+
+.neon-pink {
+color: #ff00ff;
+text-shadow:
+0 0 8px #ff00ff,
+0 0 20px rgba(255, 0, 255, 0.6);
+}
+
+.neon-yellow {
+color: #ffe600;
+text-shadow:
+0 0 8px #ffe600,
+0 0 18px rgba(255, 230, 0, 0.6);
+}
+
+.record-badge {
+animation: pulseRecord 1.2s infinite alternate;
+}
+
+@keyframes pulseRecord {
+0% {
+transform: scale(1);
+filter: drop-shadow(0 0 5px #ffe600);
+}
+
+100% {
+transform: scale(1.08);
+filter: drop-shadow(0 0 16px #ff00ff);
+}
+}
+
+/* ==========================================================================
+4. CONTROLES VIRTUAIS MOBILE (TOUCH HUD)
+========================================================================== */
+
+.mobile-hud {
+position: absolute;
+top: 0;
+left: 0;
+z-index: 25;
+display: none;
+width: 100%;
+height: 100%;
+pointer-events: none;
+}
+
+.mobile-btn-action {
+position: absolute;
+display: flex;
+align-items: center;
+justify-content: center;
+border: 2px solid #00ffff;
+border-radius: 50%;
+background: rgba(14, 7, 40, 0.75);
+box-shadow: 0 0 12px rgba(0, 255, 255, 0.4);
+color: #00ffff;
+font-family: inherit;
+font-size: 20px;
+cursor: pointer;
+pointer-events: auto;
+user-select: none;
+-webkit-user-select: none;
+touch-action: manipulation;
+transition: transform 0.1s ease, background 0.1s ease;
+}
+
+.mobile-btn-action:active {
+transform: scale(0.92);
+background: rgba(0, 255, 255, 0.3);
+}
+
+#btnMobilePause {
+top: 15px;
+left: 15px;
+width: 44px;
+height: 44px;
+font-size: 16px;
+}
+
+#btnMobileBomb {
+right: 20px;
+bottom: 30px;
+width: 64px;
+height: 64px;
+border-color: #ff3344;
+box-shadow: 0 0 15px rgba(255, 51, 68, 0.5);
+font-size: 28px;
+}
+
+#btnMobileBomb:active {
+background: rgba(255, 51, 68, 0.35);
+}
+
+.bomb-badge {
+position: absolute;
+top: -4px;
+right: -4px;
+min-width: 20px;
+height: 20px;
+padding: 0 4px;
+border-radius: 10px;
+background: #ff007f;
+box-shadow: 0 0 8px #ff007f;
+color: #ffffff;
+font-size: 11px;
+font-weight: 900;
+line-height: 20px;
+text-align: center;
+}
+
+/* ==========================================================================
+5. BOTÕES ARCADE & CARDS DE CONTROLE
+========================================================================== */
+
+.arcade-btn {
+padding: 12px 28px;
+border: 2px solid #00ffff;
+border-radius: 4px;
+background: rgba(0, 255, 255, 0.08);
+box-shadow: 0 0 14px rgba(0, 255, 255, 0.35);
+color: #00ffff;
+font-family: inherit;
+font-size: 16px;
+font-weight: 700;
+letter-spacing: 2px;
+cursor: pointer;
+outline: none;
+transition: all 0.2s ease-in-out;
+}
+
+.arcade-btn:hover {
+background: #00ffff;
+box-shadow: 0 0 24px #00ffff;
+color: #030008;
+transform: scale(1.04);
+}
+
+.arcade-btn:active {
+transform: scale(0.96);
+}
+
+.menu-trigger-btn {
+margin-bottom: 18px;
+padding: 8px 18px;
+border: 1px solid rgba(0, 255, 255, 0.5);
+border-radius: 20px;
+background: rgba(8, 2, 24, 0.85);
+box-shadow: 0 0 12px rgba(0, 255, 255, 0.25);
+color: #00ffff;
+font-family: inherit;
+font-size: 13px;
+font-weight: 700;
+letter-spacing: 1px;
+cursor: pointer;
+transition: all 0.2s ease;
+}
+
+.menu-trigger-btn:hover {
+border-color: #00ffff;
+box-shadow: 0 0 16px #00ffff;
+transform: scale(1.05);
+}
+
+/* Grade de Instruções e Teclas */
+.controls-grid {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+gap: 10px;
+width: 100%;
+max-width: 540px;
+margin: 15px 0;
+}
+
+.control-card {
+padding: 8px;
+border: 1px solid rgba(0, 255, 255, 0.25);
+border-radius: 6px;
+background: rgba(14, 6, 36, 0.65);
+}
+
+.control-desc {
+margin-top: 4px;
+color: #8ec3e6;
+font-size: 10px;
+letter-spacing: 1px;
+}
+
+.key-badge {
+display: inline-block;
+padding: 2px 6px;
+border: 1px solid #00ffff;
+border-radius: 3px;
+background: rgba(0, 255, 255, 0.15);
+color: #00ffff;
+font-size: 11px;
+font-weight: 700;
+}
+
+.key-badge.pink {
+border-color: #ff00ff;
+background: rgba(255, 0, 255, 0.15);
+color: #ff00ff;
+}
+
+.key-badge.yellow {
+border-color: #ffe600;
+background: rgba(255, 230, 0, 0.15);
+color: #ffe600;
+}
+
+.instructions-box {
+max-width: 500px;
+border: 1px dashed rgba(0, 255, 255, 0.35);
+border-radius: 6px;
+background: rgba(9, 3, 24, 0.7);
+color: #c0d8f0;
+line-height: 1.4;
+}
+
+/* ==========================================================================
+6. MODAL DE CONFIGURAÇÕES DE ÁUDIO
+========================================================================== */
+
+.modal-backdrop {
+position: absolute;
+top: 0;
+left: 0;
+z-index: 50;
+display: none;
+align-items: center;
+justify-content: center;
+width: 100%;
+height: 100%;
+background: rgba(0, 0, 0, 0.75);
+backdrop-filter: blur(5px);
+}
+
+.modal-window {
+width: 90%;
+max-width: 380px;
+padding: 22px;
+border: 2px solid #00ffff;
+border-radius: 8px;
+background: #080218;
+box-shadow: 0 0 25px rgba(0, 255, 255, 0.45);
+color: #ffffff;
+}
+
+.modal-header {
+display: flex;
+align-items: center;
+justify-content: space-between;
+margin-bottom: 18px;
+padding-bottom: 10px;
+border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+}
+
+.modal-title {
+color: #00ffff;
+font-size: 15px;
+font-weight: 700;
+letter-spacing: 1px;
+}
+
+.modal-close-icon {
+border: none;
+background: transparent;
+color: #ff0055;
+font-size: 18px;
+font-weight: 700;
+cursor: pointer;
+transition: transform 0.15s ease;
+}
+
+.modal-close-icon:hover {
+transform: scale(1.2);
+}
+
+.setting-row {
+display: flex;
+align-items: center;
+justify-content: space-between;
+margin-bottom: 16px;
+font-size: 13px;
+}
+
+.setting-label {
+color: #c0d8f0;
+}
+
+.toggle-btn {
+padding: 6px 14px;
+border: 1px solid #00ffff;
+border-radius: 4px;
+background: rgba(0, 255, 255, 0.12);
+color: #00ffff;
+font-family: inherit;
+font-size: 12px;
+font-weight: 700;
+cursor: pointer;
+transition: all 0.2s ease;
+}
+
+.toggle-btn.muted {
+border-color: #ff007f;
+background: rgba(255, 0, 127, 0.12);
+color: #ff007f;
+}
+
+.custom-slider {
+width: 140px;
+height: 6px;
+border-radius: 3px;
+background: rgba(0, 255, 255, 0.25);
+outline: none;
+cursor: pointer;
+accent-color: #00ffff;
+}
+
+/* ==========================================================================
+7. RESPONSIVIDADE (DISPOSITIVOS MÓVEIS)
+========================================================================== */
+
+@media (max-width: 768px) {
+.controls-grid {
+grid-template-columns: repeat(2, 1fr);
+max-width: 320px;
+}
+
+.instructions-box {
+padding: 8px 12px;
+font-size: 11px;
+}
+
+.arcade-btn {
+padding: 10px 22px;
+font-size: 14px;
+}
+}
