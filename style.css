@@ -275,14 +275,15 @@ transform: scale(1.05);
 /* Grade de Instruções e Teclas */
 .controls-grid {
 display: grid;
-grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+grid-template-columns: repeat(4, minmax(0, 1fr));
 gap: 10px;
 width: 100%;
-max-width: 540px;
+max-width: 760px;
 margin: 15px 0;
 }
 
 .control-card {
+min-width: 0;
 padding: 8px;
 border: 1px solid rgba(0, 255, 255, 0.25);
 border-radius: 6px;
@@ -453,6 +454,13 @@ font-size: 11px;
 .arcade-btn {
 padding: 10px 22px;
 font-size: 14px;
+}
+}
+
+@media (max-width: 360px) {
+.controls-grid {
+grid-template-columns: 1fr;
+max-width: 240px;
 }
 }
 
