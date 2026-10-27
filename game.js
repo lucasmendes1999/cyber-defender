@@ -281,6 +281,34 @@ let currentState = GameState.MENU;
 let score = 0;
 let highScore = loadHighScore();
 let wave = 1;
+const stages = [
+  { name: 'ÓRBITA NEON', boss: 'SENTINELA', color: '#00ffff', background: '#071d30' },
+  { name: 'NEBULOSA VIOLETA', boss: 'HIDRA', color: '#ff00ff', background: '#240b36' },
+  { name: 'NÚCLEO SOLAR', boss: 'ÔMEGA', color: '#ff8800', background: '#321207' }
+];
+let stage = 0;
+let spawnedThisWave = 0;
+let transitionTimer = 0;
+let announcementTimer = 0;
+function stageData() { return stages[stage % stages.length]; }
+function waveTarget() { return 6 + wave * 2 + Math.min(stage, 8) * 2; }
+function beginWave() {
+  spawnedThisWave = 0;
+  spawnTimer = 0;
+  transitionTimer = 1800;
+  announcementTimer = 2400;
+  canvas.style.background = `radial-gradient(circle at center, ${stageData().background}, #030008)`;
+}
+function advanceWave() {
+  lasers = lasers.filter(l => !l.isEnemy);
+  if (wave % 6 === 0) {
+    stage++;
+    player.shield = Math.min(player.maxShield, player.shield + 35);
+    player.bombs = Math.min(3, player.bombs + 1);
+  }
+  wave++;
+  beginWave();
+}
 let combo = 1;
 let comboTimer = 0;
 let screenShake = 0;
@@ -947,19 +975,22 @@ class Enemy {
   constructor(typeKey, x, y) {
     this.typeKey = typeKey;
     this.data = EnemyType[typeKey];
-    this.x = x || Math.random() * (width - 80) + 40;
-    this.y = y || -40;
+    this.x = x ?? Math.random() * (width - 80) + 40;
+    this.y = y ?? -40;
     const waveScale = this.typeKey === 'BOSS' ? (wave - 1) * 8 : (wave - 1) * 0.4;
     this.hp = this.data.hp + waveScale;
+    if (typeKey === 'BOSS') this.data = { ...this.data, color: stageData().color };
     this.maxHp = this.hp;
     this.radius = this.data.radius;
     this.speed = this.data.speed;
     this.markedForDeletion = false;
     this.timer = Math.random() * 100;
+    this.bossMotion = 0;
     this.shootTimer = 0;
   }
 
-  update() {
+  update(deltaTime = 1000 / 60) {
+    const bossStep = deltaTime / (1000 / 60);
     this.timer += 0.025;
 
     if (this.typeKey === 'SCOUT') {
@@ -981,17 +1012,29 @@ class Enemy {
         lasers.push(new Laser(this.x + 10, this.y + this.radius, 0.8, 2.3, true, '#ff00ff'));
       }
     } else if (this.typeKey === 'BOSS') {
-      if (this.y < 110) {
-        this.y += 0.8;
+      const targetY = Math.min(160, height * 0.28);
+      if (this.y < targetY) {
+        this.y = Math.min(targetY, this.y + 0.8 * bossStep);
       } else {
-        this.x += Math.cos(this.timer) * 1.6;
+        this.bossMotion += 0.007 * bossStep;
+        const targetX = width / 2 + Math.sin(this.bossMotion) * Math.max(0, width / 2 - this.radius - 12);
+        const maxMove = 1.6 * bossStep;
+        this.x += Math.max(-maxMove, Math.min(maxMove, targetX - this.x));
       }
       this.shootTimer++;
-      if (this.shootTimer > 95) {
+      if (this.shootTimer > (this.hp < this.maxHp / 2 ? 55 : 95)) {
         this.shootTimer = 0;
-        [-1.2, 0, 1.2].forEach(vx => {
-          lasers.push(new Laser(this.x, this.y + this.radius, vx, 2.4, true, '#ff3344'));
-        });
+        if (stage % 3 === 0) {
+          [-1.4, 0, 1.4].forEach(vx => lasers.push(new Laser(this.x, this.y + this.radius, vx, 2.6, true, this.data.color)));
+        } else if (stage % 3 === 1) {
+          const angle = Math.atan2(player.y - this.y, player.x - this.x);
+          [-0.3, 0, 0.3].forEach(offset => lasers.push(new Laser(this.x, this.y, Math.cos(angle + offset) * 3, Math.sin(angle + offset) * 3, true, this.data.color)));
+        } else {
+          for (let i = 0; i < 10; i++) {
+            const angle = i * Math.PI / 5 + this.timer;
+            lasers.push(new Laser(this.x, this.y, Math.cos(angle) * 2.8, Math.sin(angle) * 2.8, true, this.data.color));
+          }
+        }
       }
     }
 
@@ -1038,15 +1081,45 @@ class Enemy {
       ctx.fill();
       ctx.stroke();
     } else if (this.typeKey === 'BOSS') {
+      // Disco alienígena com cúpula, casco metálico e luzes de propulsão.
+      const r = this.radius;
+      const hull = ctx.createLinearGradient(0, -r * 0.25, 0, r * 0.55);
+      hull.addColorStop(0, '#748caa');
+      hull.addColorStop(0.45, '#23364f');
+      hull.addColorStop(1, '#090e23');
+      ctx.fillStyle = hull;
       ctx.beginPath();
-      ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+      ctx.ellipse(0, r * 0.08, r, r * 0.43, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
-
-      ctx.strokeStyle = '#ffffff';
+      ctx.fillStyle = '#102c3a';
       ctx.beginPath();
-      ctx.arc(0, 0, this.radius * 0.4, 0, Math.PI * 2);
+      ctx.ellipse(0, -r * 0.2, r * 0.46, r * 0.5, 0, Math.PI, Math.PI * 2);
+      ctx.closePath();
+      ctx.fill();
       ctx.stroke();
+      ctx.fillStyle = '#a2ffb0';
+      ctx.shadowColor = '#65ff91';
+      ctx.beginPath();
+      ctx.ellipse(0, -r * 0.35, r * 0.17, r * 0.21, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#06120d';
+      [-1, 1].forEach(side => {
+        ctx.beginPath();
+        ctx.ellipse(side * r * 0.075, -r * 0.36, r * 0.045, r * 0.08, side * 0.4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.strokeStyle = this.data.color;
+      ctx.shadowColor = this.data.color;
+      ctx.beginPath();
+      ctx.ellipse(0, r * 0.1, r * 0.88, r * 0.12, 0, 0, Math.PI);
+      ctx.stroke();
+      for (let i = -2; i <= 2; i++) {
+        ctx.fillStyle = i % 2 === 0 ? this.data.color : '#ffe600';
+        ctx.beginPath();
+        ctx.arc(i * r * 0.3, r * 0.29 - Math.abs(i) * r * 0.035, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
 
       ctx.restore();
       ctx.save();
@@ -1091,11 +1164,19 @@ function triggerScreenBomb() {
   sound.bombSound();
   screenShake = 25;
   enemies.forEach(enemy => {
+    if (enemy.markedForDeletion) return;
+    if (enemy.typeKey === 'BOSS') {
+      enemy.hp -= 35;
+      if (enemy.hp > 0) return;
+      activeBoss = null;
+    }
+    enemy.markedForDeletion = true;
     createExplosion(enemy.x, enemy.y, enemy.data.color, 25);
     damageNumbers.push(new DamageNumber(enemy.x, enemy.y, 'EMP!', '#ff3333', true));
     score += enemy.data.score;
   });
-  enemies = [];
+  enemies = enemies.filter(e => !e.markedForDeletion);
+  saveHighScore(score);
   lasers = lasers.filter(l => !l.isEnemy);
 }
 
@@ -1128,7 +1209,6 @@ function checkCollisions() {
 
           if (enemy.typeKey === 'BOSS') {
             activeBoss = null;
-            wave++;
             damageNumbers.push(new DamageNumber(width / 2, height / 2, 'CHEFÃO DESTRUÍDO!', '#ffe600', true));
           }
 
@@ -1187,18 +1267,30 @@ function checkCollisions() {
   }
 }
 
-function spawnLogic() {
-  if (wave % 5 === 0 && !activeBoss) {
+function spawnLogic(deltaTime) {
+  announcementTimer = Math.max(0, announcementTimer - deltaTime);
+  if (transitionTimer > 0) {
+    transitionTimer = Math.max(0, transitionTimer - deltaTime);
+    return;
+  }
+  const bossWave = wave % 6 === 0;
+  const target = bossWave ? 1 : waveTarget();
+  if (spawnedThisWave >= target) {
+    if (!enemies.some(e => !e.markedForDeletion)) advanceWave();
+    return;
+  }
+  if (wave % 6 === 0 && !activeBoss) {
     activeBoss = new Enemy('BOSS', width / 2, -50);
     enemies.push(activeBoss);
+    spawnedThisWave++;
     sound.bossAlert();
     return;
   }
 
   if (activeBoss) return;
 
-  spawnTimer++;
-  const spawnInterval = Math.max(50, 110 - wave * 4);
+  spawnTimer += deltaTime;
+  const spawnInterval = Math.max(400, 1100 - wave * 50);
   if (spawnTimer >= spawnInterval) {
     spawnTimer = 0;
     const rand = Math.random();
@@ -1207,12 +1299,34 @@ function spawnLogic() {
     else if (rand > 0.55) type = 'FIGHTER';
 
     enemies.push(new Enemy(type));
+    spawnedThisWave++;
   }
 }
 
 /* ==========================================================================
    5. INTERFACE (HUD), CONTROLE DE ESTADOS E LOOP PRINCIPAL
    ========================================================================== */
+function drawProgression() {
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 12px "Courier New", monospace';
+  ctx.fillStyle = stageData().color;
+  const remaining = Math.max(0, waveTarget() - spawnedThisWave) + enemies.filter(e => !e.markedForDeletion).length;
+  const progress = wave % 6 === 0
+    ? `${stageData().boss}${activeBoss ? ' • ' + Math.ceil(Math.max(0, activeBoss.hp)) + ' HP' : ''}`
+    : `RESTANTES: ${remaining}`;
+  ctx.fillText(`FASE ${stage + 1} • ${stageData().name} • ${progress}`, width / 2, height - 18, width - 24);
+  if (announcementTimer > 0) {
+    ctx.fillStyle = 'rgba(3, 0, 8, 0.85)';
+    ctx.fillRect(0, height * 0.4 - 28, width, 56);
+    ctx.fillStyle = stageData().color;
+    ctx.font = 'bold 20px "Courier New", monospace';
+    ctx.fillText(`FASE ${stage + 1}: ${stageData().name}`, width / 2, height * 0.4 - 3, width - 32);
+    ctx.font = 'bold 14px "Courier New", monospace';
+    ctx.fillText(wave % 6 === 0 ? `CHEFÃO: ${stageData().boss}` : `ONDA ${(wave - 1) % 6 + 1} / 5`, width / 2, height * 0.4 + 19, width - 32);
+  }
+  ctx.restore();
+}
 function drawCompactHUD() {
   ctx.save();
   ctx.font = 'bold 12px "Courier New", monospace';
@@ -1386,6 +1500,8 @@ function startGame() {
   particles = [];
   damageNumbers = [];
   player.reset();
+  stage = 0;
+  beginWave();
 
   startScreen.style.display = 'none';
   gameOverScreen.style.display = 'none';
@@ -1395,7 +1511,7 @@ function startGame() {
 let lastTime = performance.now();
 
 function gameLoop(timestamp) {
-  const deltaTime = timestamp - lastTime;
+  const deltaTime = Math.min(50, Math.max(0, timestamp - lastTime));
   lastTime = timestamp;
 
   if (damageFlashTimer > 0) {
@@ -1426,14 +1542,14 @@ function gameLoop(timestamp) {
         if (comboTimer <= 0) combo = 1;
       }
 
-      spawnLogic();
+      spawnLogic(deltaTime);
       player.update(deltaTime);
       checkCollisions();
 
       lasers.forEach(l => l.update());
       lasers = lasers.filter(l => !l.markedForDeletion);
 
-      enemies.forEach(e => e.update());
+      enemies.forEach(e => e.update(deltaTime));
       enemies = enemies.filter(e => !e.markedForDeletion);
 
       powerups.forEach(p => p.update());
@@ -1453,6 +1569,7 @@ function gameLoop(timestamp) {
     particles.forEach(p => p.draw(ctx));
     damageNumbers.forEach(d => d.draw(ctx));
     drawHUD();
+    drawProgression();
     updateMobileHUD();
 
   } else if (currentState === GameState.MENU || currentState === GameState.GAMEOVER) {
