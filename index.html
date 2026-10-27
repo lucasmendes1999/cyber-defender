@@ -92,6 +92,16 @@
       <p style="margin-top: 14px; font-size: 14px; color: #6bf;" class="record-badge">👑 RECORDE SUPREMO: <span id="menuHighScore" class="neon-yellow">0</span></p>
     </div>
 
+    <div id="pauseScreen" class="ui-layer interactive" style="display: none;">
+      <h1 class="neon-text">JOGO PAUSADO</h1>
+      <div class="pause-actions">
+        <button id="btnResume" class="arcade-btn">RETOMAR JOGO</button>
+        <button id="btnPauseRestart" class="arcade-btn">REINICIAR</button>
+        <button id="btnPauseMenu" class="arcade-btn">MENU PRINCIPAL</button>
+      </div>
+      <p class="pause-hint">No teclado: P retoma · R reinicia · ESC abre o menu</p>
+    </div>
+
     <!-- Tela de Game Over -->
     <div id="gameOverScreen" class="ui-layer interactive" style="display: none;">
       <h1 class="neon-pink" style="font-size: clamp(2.2rem, 7vw, 4.5rem); font-weight: 900; margin-bottom: 10px;">SISTEMA OFFLINE</h1>

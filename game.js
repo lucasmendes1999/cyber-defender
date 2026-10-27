@@ -148,6 +148,7 @@ const sound = new RetroAudio();
    ========================================================================== */
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+const pauseScreen = document.getElementById('pauseScreen');
 const startScreen = document.getElementById('startScreen');
 const gameOverScreen = document.getElementById('gameOverScreen');
 const damageVignette = document.getElementById('damageVignette');
@@ -178,8 +179,8 @@ let height = 0;
 let isSettingsOpen = false;
 
 function resize() {
-  width = canvas.width = window.innerWidth;
-  height = canvas.height = window.innerHeight;
+  width = canvas.width = canvas.clientWidth;
+  height = canvas.height = canvas.clientHeight;
 }
 window.addEventListener('resize', resize);
 resize();
@@ -339,7 +340,7 @@ window.addEventListener('keydown', (e) => {
 
   // Tecla P - Pausa
   if (e.code === 'KeyP' && currentState === GameState.PLAYING) {
-    isPaused = !isPaused;
+    setPaused(!isPaused);
   }
 
   // Tecla R - Reinício Rápido
@@ -377,7 +378,7 @@ function updatePointer(e) {
 // Arrasto Relativo no Touch (evita que o dedo tampe a nave)
 window.addEventListener('touchstart', (e) => {
   if (currentState === GameState.PLAYING && !isSettingsOpen) {
-    if (e.target.closest('#mobileControls')) return; // Não interfere nos botões
+    if (isPaused || e.target.closest('button, .ui-layer, .modal-backdrop')) return; // Não interfere nos botões
     isPointerDown = true;
     lastTouchX = e.touches[0].clientX;
     lastTouchY = e.touches[0].clientY;
@@ -385,7 +386,7 @@ window.addEventListener('touchstart', (e) => {
 }, { passive: false });
 
 window.addEventListener('touchmove', (e) => {
-  if (isPointerDown && currentState === GameState.PLAYING && !isSettingsOpen) {
+  if (isPointerDown && currentState === GameState.PLAYING && !isPaused && !isSettingsOpen) {
     e.preventDefault();
     const touchX = e.touches[0].clientX;
     const touchY = e.touches[0].clientY;
@@ -409,7 +410,7 @@ window.addEventListener('touchend', () => {
 });
 
 window.addEventListener('pointerdown', (e) => {
-  if (e.pointerType === 'mouse' && currentState === GameState.PLAYING && !isSettingsOpen) {
+  if (e.pointerType === 'mouse' && currentState === GameState.PLAYING && !isPaused && !isSettingsOpen && e.target === canvas) {
     isPointerDown = true;
     updatePointer(e);
   }
@@ -429,7 +430,7 @@ window.addEventListener('pointerup', (e) => {
 btnMobilePause.addEventListener('click', (e) => {
   e.stopPropagation();
   if (currentState === GameState.PLAYING) {
-    isPaused = !isPaused;
+    setPaused(!isPaused);
   }
 });
 
@@ -446,9 +447,23 @@ btnStart.addEventListener('click', startGame);
 btnRestart.addEventListener('click', startGame);
 btnBackToMenu.addEventListener('click', goToMenu);
 
+function setPaused(paused) {
+  isPaused = paused;
+  pauseScreen.style.display = paused ? 'flex' : 'none';
+  isPointerDown = false;
+  lastTouchX = lastTouchY = null;
+  updateMobileHUD();
+}
+document.getElementById('btnResume').addEventListener('click', () => setPaused(false));
+document.getElementById('btnPauseRestart').addEventListener('click', startGame);
+document.getElementById('btnPauseMenu').addEventListener('click', goToMenu);
+window.addEventListener('touchcancel', () => {
+  isPointerDown = false;
+  lastTouchX = lastTouchY = null;
+});
 function updateMobileHUD() {
   if (mobileControls) {
-    if (currentState === GameState.PLAYING && !isPaused) {
+    if (currentState === GameState.PLAYING && !isPaused && window.matchMedia('(pointer: coarse), (max-width: 768px)').matches) {
       mobileControls.style.display = 'block';
       if (mobileBombCount) mobileBombCount.textContent = player.bombs;
     } else {
@@ -459,38 +474,11 @@ function updateMobileHUD() {
 
 function goToMenu() {
   currentState = GameState.MENU;
-  isPaused = false;
+  setPaused(false);
   startScreen.style.display = 'flex';
   gameOverScreen.style.display = 'none';
   menuHighScoreEl.textContent = highScore.toLocaleString();
   updateMobileHUD();
-}
-
-window.addEventListener('pointerdown', (e) => {
-  if (currentState === GameState.PLAYING && !isSettingsOpen) {
-    isPointerDown = true;
-    updatePointer(e);
-  }
-});
-
-window.addEventListener('pointermove', (e) => {
-  if (isPointerDown && !isSettingsOpen) updatePointer(e);
-});
-
-window.addEventListener('pointerup', () => {
-  isPointerDown = false;
-});
-
-btnStart.addEventListener('click', startGame);
-btnRestart.addEventListener('click', startGame);
-btnBackToMenu.addEventListener('click', goToMenu);
-
-function goToMenu() {
-  currentState = GameState.MENU;
-  isPaused = false;
-  startScreen.style.display = 'flex';
-  gameOverScreen.style.display = 'none';
-  menuHighScoreEl.textContent = highScore.toLocaleString();
 }
 
 /* ==========================================================================
@@ -1225,7 +1213,42 @@ function spawnLogic() {
 /* ==========================================================================
    5. INTERFACE (HUD), CONTROLE DE ESTADOS E LOOP PRINCIPAL
    ========================================================================== */
+function drawCompactHUD() {
+  ctx.save();
+  ctx.font = 'bold 12px "Courier New", monospace';
+  ctx.shadowBlur = 4;
+  ctx.shadowColor = '#00ffff';
+  ctx.fillStyle = '#00ffff';
+  ctx.fillText(`SCORE: ${score}`, 12, 24);
+  ctx.fillStyle = '#ffe600';
+  ctx.fillText(`HI: ${Math.max(score, highScore).toLocaleString()}`, 12, 43);
+  ctx.textAlign = 'right';
+  const right = width - 72;
+  ctx.fillStyle = '#00ffff';
+  ctx.fillText(`WAVE: ${wave}`, right, 24);
+  ctx.fillStyle = '#ff3344';
+  ctx.fillText(`VIDAS: ${player.lives} | EMP: ${player.bombs}`, right, 43);
+  const barWidth = width - 24;
+  ctx.fillStyle = 'rgba(6, 4, 18, 0.85)';
+  ctx.fillRect(12, 62, barWidth, 14);
+  ctx.fillStyle = player.shield <= 30 ? '#ff1144' : '#00ffff';
+  ctx.fillRect(14, 64, (barWidth - 4) * Math.max(0, Math.min(1, player.shield / player.maxShield)), 10);
+  ctx.strokeStyle = '#00ffff';
+  ctx.strokeRect(12, 62, barWidth, 14);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText(`${Math.round(player.shield)}%`, width - 16, 73);
+  ctx.textAlign = 'left';
+  const effects = [];
+  if (combo > 1) effects.push(`COMBO x${combo}`);
+  if (player.tripleShotTimer > 0) effects.push('TIRO TRIPLO');
+  if (player.hasShieldPowerup) effects.push('ESCUDO');
+  if (player.speedTimer > 0) effects.push('HYPER');
+  ctx.font = '10px "Courier New", monospace';
+  ctx.fillText(effects.join(' | '), 12, 94, width - 24);
+  ctx.restore();
+}
 function drawHUD() {
+  if (width <= 768) { drawCompactHUD(); return; }
   ctx.save();
   ctx.font = 'bold 15px "Courier New", Courier, monospace';
   ctx.fillStyle = '#00ffff';
@@ -1328,23 +1351,6 @@ function drawHUD() {
     ctx.fillText(`🚀 HYPER VELOCIDADE: ${(player.speedTimer / 1000).toFixed(1)}s`, 20, pY);
   }
 
-  if (isPaused) {
-    ctx.fillStyle = 'rgba(3, 1, 10, 0.75)';
-    ctx.fillRect(0, 0, width, height);
-    ctx.textAlign = 'center';
-    ctx.font = 'bold 36px "Courier New", Courier, monospace';
-    ctx.fillStyle = '#00ffff';
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = '#00ffff';
-    ctx.fillText('JOGO PAUSADO', width / 2, height / 2 - 20);
-    ctx.font = '16px "Courier New", Courier, monospace';
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText('Pressione [ P ] para retomar', width / 2, height / 2 + 15);
-    ctx.fillStyle = '#ffe600';
-    ctx.fillText('[ R ] Reiniciar  |  [ ESC ] Voltar ao Menu Principal', width / 2, height / 2 + 45);
-    ctx.textAlign = 'left';
-  }
-
   ctx.restore();
 }
 
@@ -1368,7 +1374,7 @@ function triggerGameOver() {
 function startGame() {
   sound.init();
   currentState = GameState.PLAYING;
-  isPaused = false;
+  setPaused(false);
   score = 0;
   wave = 1;
   combo = 1;

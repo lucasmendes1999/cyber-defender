@@ -3,7 +3,7 @@
 RESET & CONFIGURAÇÕES GERAIS
 ========================================================================== */
 
-{
+* {
 box-sizing: border-box;
 margin: 0;
 padding: 0;
@@ -26,6 +26,7 @@ touch-action: none;
 position: relative;
 width: 100vw;
 height: 100vh;
+height: 100dvh;
 overflow: hidden;
 }
 
@@ -86,7 +87,16 @@ padding: 20px;
 background: rgba(3, 0, 8, 0.82);
 text-align: center;
 backdrop-filter: blur(4px);
+overflow-y: auto;
+touch-action: pan-y;
 }
+
+.ui-layer > * { flex-shrink: 0; max-width: 100%; }
+
+#pauseScreen { z-index: 30; gap: 16px; }
+#pauseScreen h1 { font-size: clamp(1.5rem, 6vw, 2.5rem); }
+.pause-actions { display: flex; flex-direction: column; gap: 12px; width: min(100%, 340px); }
+.pause-hint { color: #8ec3e6; font-size: 12px; }
 
 .interactive {
 pointer-events: auto;
@@ -171,8 +181,8 @@ background: rgba(0, 255, 255, 0.3);
 }
 
 #btnMobilePause {
-top: 15px;
-left: 15px;
+top: max(12px, env(safe-area-inset-top));
+right: max(12px, env(safe-area-inset-right));
 width: 44px;
 height: 44px;
 font-size: 16px;
@@ -180,7 +190,7 @@ font-size: 16px;
 
 #btnMobileBomb {
 right: 20px;
-bottom: 30px;
+bottom: max(20px, env(safe-area-inset-bottom));
 width: 64px;
 height: 64px;
 border-color: #ff3344;
@@ -423,6 +433,13 @@ accent-color: #00ffff;
 ========================================================================== */
 
 @media (max-width: 768px) {
+.ui-layer {
+padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+.controls-grid { min-width: 0; }
+.control-card { min-width: 0; }
+.record-badge { animation: none; }
+.modal-window { max-height: 100%; overflow-y: auto; touch-action: pan-y; }
 .controls-grid {
 grid-template-columns: repeat(2, 1fr);
 max-width: 320px;
@@ -437,4 +454,12 @@ font-size: 11px;
 padding: 10px 22px;
 font-size: 14px;
 }
+}
+
+@media (max-height: 600px) {
+.ui-layer { justify-content: flex-start; }
+.ui-layer > :first-child { margin-top: auto; }
+.ui-layer > :last-child { margin-bottom: auto; }
+#startScreen .menu-trigger-btn { margin-bottom: 8px; }
+#startScreen .controls-grid { margin: 8px 0; }
 }
