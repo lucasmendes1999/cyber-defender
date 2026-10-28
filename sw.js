@@ -1,6 +1,6 @@
-// Increment the version whenever the offline files change.
+// Online requests refresh the offline copy automatically.
 const CACHE_PREFIX = 'cyber-neon-defender-';
-const CACHE_NAME = `${CACHE_PREFIX}v1`;
+const CACHE_NAME = `${CACHE_PREFIX}v2`;
 const APP_FILES = [
   './', './index.html', './style.css', './game.js', './pwa.js',
   './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png',
@@ -9,8 +9,11 @@ const APP_FILES = [
 const APP_URLS = new Set(APP_FILES.map(path => new URL(path, self.registration.scope).href));
 
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_FILES)));
-  // Wait for existing game windows to close before activating an update.
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    await cache.addAll(APP_FILES.map(path => new Request(path, { cache: 'reload' })));
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', event => {
@@ -28,10 +31,20 @@ self.addEventListener('fetch', event => {
   url.search = '';
   if (!APP_URLS.has(url.href)) return;
 
-  // Serve a consistent version of the complete game, even without a connection.
+  // Prefer fresh files online and keep the last successful copy for offline play.
   event.respondWith((async () => {
     const cache = await caches.open(CACHE_NAME);
-    const cached = await cache.match(url.href);
-    return cached || fetch(event.request);
+    try {
+      const response = await fetch(event.request, { cache: 'no-store' });
+      if (response.ok) {
+        await cache.put(url.href, response.clone());
+        return response;
+      }
+      return (await cache.match(url.href)) || response;
+    } catch (error) {
+      const cached = await cache.match(url.href);
+      if (cached) return cached;
+      throw error;
+    }
   })());
 });

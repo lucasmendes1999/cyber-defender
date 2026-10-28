@@ -10,7 +10,9 @@ Sirva esta pasta por HTTPS em produção ou por `http://localhost` durante o des
 
 ## Publicar atualizações
 
-Sempre que alterar um arquivo do jogo, incremente a versão em `CACHE_NAME` no `sw.js`. Publique todos os arquivos juntos, incluindo `icons/`, manifesto e service worker. A atualização será ativada quando as janelas anteriores do jogo forem fechadas; não há recarga automática durante a partida.
+Publique todos os arquivos juntos, incluindo `icons/`, manifesto e service worker. Não é necessário incrementar `CACHE_NAME` para alterações nos arquivos do jogo: quando online, cada abertura ou recarga busca os arquivos atuais e atualiza a cópia offline. Sem conexão, o jogo usa a última cópia salva. Arquivos já carregados permanecem em uso até a próxima abertura ou recarga.
+
+Alterações no próprio service worker são verificadas na abertura, ao voltar ao aplicativo e ao recuperar a conexão. Um novo service worker é ativado imediatamente e recarrega a página automaticamente; isso pode interromper uma partida em andamento.
 
 ## Conferência no navegador
 

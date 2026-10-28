@@ -1,7 +1,22 @@
 (() => {
   if ('serviceWorker' in navigator && window.isSecureContext) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js').catch(error => {
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (refreshing) return;
+        refreshing = true;
+        window.location.reload();
+      });
+      navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(registration => {
+        const checkForUpdate = () => {
+          if (navigator.onLine) registration.update().catch(console.warn);
+        };
+        window.addEventListener('online', checkForUpdate);
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') checkForUpdate();
+        });
+        checkForUpdate();
+      }).catch(error => {
         console.warn('Não foi possível ativar o modo offline.', error);
       });
     });
