@@ -3,6 +3,16 @@
 RESET & CONFIGURAÇÕES GERAIS
 ========================================================================== */
 
+.pwa-install {
+margin-top: 10px;
+font-size: 14px;
+padding: 10px 18px;
+}
+
+.pwa-install[hidden] {
+display: none;
+}
+
 * {
 box-sizing: border-box;
 margin: 0;

@@ -1,0 +1,18 @@
+{
+  "id": "./",
+  "name": "Cyber Neon Defender",
+  "short_name": "Cyber Defender",
+  "description": "Defenda a galáxia neste arcade neon com fases e chefões. Jogue também offline.",
+  "lang": "pt-BR",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#030008",
+  "theme_color": "#030008",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

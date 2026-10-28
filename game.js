@@ -666,6 +666,34 @@ class Laser {
 
   draw(ctx) {
     ctx.save();
+    if (this.isEnemy) {
+      // Keep hostile shots readable against both dark space and bright effects.
+      const speed = Math.hypot(this.vx, this.vy) || 1;
+      const tailX = this.x - (this.vx / speed) * this.length * 2;
+      const tailY = this.y - (this.vy / speed) * this.length * 2;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(tailX, tailY);
+      ctx.lineTo(this.x, this.y);
+      ctx.strokeStyle = '#100818';
+      ctx.lineWidth = this.radius * 2 + 4;
+      ctx.stroke();
+      ctx.strokeStyle = '#ff6538';
+      ctx.shadowColor = '#ff6538';
+      ctx.shadowBlur = 10;
+      ctx.lineWidth = this.radius * 2;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = '#fff4c2';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius * 0.65, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      return;
+    }
     ctx.strokeStyle = this.color;
     ctx.shadowBlur = 12;
     ctx.shadowColor = this.color;
@@ -1563,10 +1591,11 @@ function gameLoop(timestamp) {
     }
 
     powerups.forEach(p => p.draw(ctx));
-    lasers.forEach(l => l.draw(ctx));
+    lasers.forEach(l => { if (!l.isEnemy) l.draw(ctx); });
     enemies.forEach(e => e.draw(ctx));
     player.draw(ctx);
     particles.forEach(p => p.draw(ctx));
+    lasers.forEach(l => { if (l.isEnemy) l.draw(ctx); });
     damageNumbers.forEach(d => d.draw(ctx));
     drawHUD();
     drawProgression();
