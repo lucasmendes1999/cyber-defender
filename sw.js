@@ -1,6 +1,6 @@
 // Online requests refresh the offline copy automatically.
 const CACHE_PREFIX = 'cyber-neon-defender-';
-const CACHE_NAME = `${CACHE_PREFIX}v4`;
+const CACHE_NAME = `${CACHE_PREFIX}v7`;
 const APP_FILES = [
   './', './index.html', './style.css', './game.js', './pwa.js',
   './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png',

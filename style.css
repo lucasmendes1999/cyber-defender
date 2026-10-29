@@ -542,3 +542,123 @@ max-width: 240px;
 #startScreen .menu-trigger-btn { margin-bottom: 8px; }
 #startScreen .controls-grid { margin: 8px 0; }
 }
+
+/* Tela de lançamento: efeitos estáticos para manter o menu leve no celular. */
+#startScreen {
+background:
+radial-gradient(ellipse at 50% 24%, rgba(0, 190, 230, .12), transparent 48%),
+radial-gradient(ellipse at 85% 80%, rgba(210, 30, 130, .1), transparent 40%),
+rgba(3, 7, 19, .93);
+backdrop-filter: none;
+padding: max(24px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+}
+#startScreen .menu-trigger-btn {
+border-color: #304459;
+color: #a5bfd4;
+font-size: 10px;
+letter-spacing: 1px;
+box-shadow: none;
+background: #0c1525;
+margin-bottom: 20px;
+}
+.menu-hero { width: min(100%, 700px); text-align: center; }
+.menu-eyebrow { font-size: 10px; letter-spacing: 2px; color: #86b5c4; line-height: 1.6; }
+.menu-eyebrow span { display: inline-block; width: 6px; height: 6px; margin-right: 5px; border-radius: 50%; background: #70f8ba; box-shadow: 0 0 9px #70f8ba; }
+.menu-emblem { width: 150px; height: 105px; margin: 4px auto; color: #63f5ff; }
+.menu-emblem svg { display: block; width: 100%; height: 100%; }
+.menu-title { font-family: Arial, sans-serif; font-size: clamp(36px, 8vw, 76px); font-weight: 900; letter-spacing: -2px; line-height: 1; color: #f0f8ff; text-shadow: 0 3px 0 #214561; }
+.menu-title span { color: #63f5ff; text-shadow: 0 0 25px rgba(99, 245, 255, .3); }
+.menu-subtitle { margin: 10px 0 16px; font-size: clamp(15px, 3vw, 23px); letter-spacing: .5em; padding-left: .5em; font-weight: 400; color: #ff72b3; }
+.menu-tagline { color: #a5b8ca; font-size: 12px; line-height: 1.6; }
+.menu-mission-tags { display: flex; justify-content: center; gap: 0; margin: 16px 0 22px; color: #839caf; font-size: 10px; letter-spacing: 1px; }
+.menu-mission-tags span { padding: 0 14px; }
+.menu-mission-tags span + span { border-left: 1px solid #304459; }
+#startScreen .menu-play { display: flex; align-items: center; justify-content: space-between; gap: 24px; width: min(100%, 350px); padding: 16px 24px; border: 1px solid #a6faff; border-radius: 8px; color: #03121e; background: #63f5ff; box-shadow: 0 5px 28px rgba(0, 221, 255, .18); font-size: 15px; }
+#startScreen .menu-play:hover { background: #b6fbff; transform: translateY(-2px); }
+.menu-play .play-arrow { font-size: 24px; line-height: 1; }
+.menu-play .play-label { font-size: inherit; line-height: 1.3; }
+#startScreen .menu-play { position: relative; isolation: isolate; overflow: visible; }
+.play-label, .play-arrow { position: relative; z-index: 1; }
+.play-tentacles { position: absolute; inset: -20px 0; width: 100%; height: calc(100% + 40px); overflow: visible; pointer-events: none; z-index: -1; }
+.play-tentacles path { fill: none; stroke: #bc52b8; stroke-width: 5; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.tentacle-left, .tentacle-right { transform-box: fill-box; transform-origin: center; }
+.tentacle-left { animation: playTentacle 4s ease-in-out infinite alternate; }
+.tentacle-right { animation: playTentacle 4.6s ease-in-out -2s infinite alternate-reverse; }
+@keyframes playTentacle { from { transform: translateY(-2px) rotate(-3deg); } to { transform: translateY(2px) rotate(3deg); } }
+@media (max-width: 480px) {
+#startScreen .menu-play { width: min(calc(100% - 52px), 350px); }
+.play-tentacles path { stroke-width: 4; }
+}
+@media (prefers-reduced-motion: reduce) {
+.tentacle-left, .tentacle-right { animation: none; }
+}
+#startScreen button:focus-visible { outline: 2px solid #fff; outline-offset: 5px; }
+.menu-start-hint { color: #688298; font-size: 10px; margin-top: 10px; }
+#startScreen .controls-grid { width: min(100%, 620px); max-width: 620px; gap: 8px; margin: 22px 0 14px; }
+#startScreen .control-card { padding: 12px 6px; background: #0c1627; border: 1px solid #203248; border-radius: 8px; }
+#startScreen .key-badge { border: 0; background: transparent; padding: 0 2px; font-size: 10px; }
+#startScreen .control-desc { margin-top: 9px; color: #8097ab; font-size: 9px; letter-spacing: .3px; }
+#startScreen .menu-briefing { width: min(100%, 620px); max-width: 620px; border: 0; border-left: 2px solid #385571; border-radius: 0; background: transparent; text-align: left; padding: 2px 14px; color: #849bb0; font-size: 11px; line-height: 1.7; }
+.menu-briefing-title { color: #d6e6f6; font-size: 9px; letter-spacing: 2px; margin-bottom: 4px; }
+.menu-record { display: flex; align-items: center; justify-content: center; gap: 16px; width: min(100%, 620px); padding-top: 16px; margin-top: 18px; border-top: 1px solid #203248; }
+.menu-record span { font-size: 9px; color: #8a9fb3; letter-spacing: 1px; }
+.menu-record strong { font-size: 20px; color: #ffe36b; }
+.menu-credit { margin-top: 12px; font-size: 10px; color: #60788e; }
+.menu-credit strong { font-weight: 400; color: #a5b8ca; }
+@media (max-width: 768px) {
+#startScreen .controls-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.menu-emblem { width: 120px; height: 84px; }
+#startScreen .menu-trigger-btn { margin-bottom: 16px; }
+.menu-eyebrow { font-size: 8px; letter-spacing: 1px; }
+}
+@media (max-height: 740px) {
+#startScreen { justify-content: flex-start; }
+#startScreen > :first-child { margin-top: auto; }
+#startScreen > :last-child { margin-bottom: auto; }
+.menu-emblem { width: 96px; height: 67px; }
+.menu-subtitle { margin-bottom: 10px; }
+.menu-mission-tags { margin: 12px 0 16px; }
+#startScreen .controls-grid { margin-top: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+#startScreen button { transition: none; }
+}
+
+.menu-layout { width: min(100%, 1120px); }
+.menu-main, .menu-panel { display: flex; flex-direction: column; align-items: center; min-width: 0; }
+.menu-panel-heading { display: none; }
+@media (min-width: 1000px) {
+#startScreen { padding: 36px 48px; }
+#startScreen .menu-trigger-btn { align-self: flex-end; margin-bottom: 28px; font-size: 11px; padding: 10px 18px; }
+.menu-layout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); align-items: center; gap: clamp(36px, 5vw, 80px); margin: auto 0; }
+.menu-main { align-items: flex-start; }
+.menu-hero { text-align: left; }
+.menu-eyebrow { font-size: 10px; }
+.menu-emblem { width: 260px; height: 182px; margin: 0 0 16px; }
+.menu-title { font-size: clamp(58px, 5.8vw, 82px); letter-spacing: -3px; }
+.menu-subtitle { font-size: 24px; letter-spacing: .65em; margin: 12px 0 22px; }
+.menu-tagline { font-size: 14px; }
+.menu-mission-tags { justify-content: flex-start; margin: 22px 0 28px; font-size: 11px; }
+.menu-mission-tags span:first-child { padding-left: 0; }
+#startScreen .menu-play { width: 350px; padding: 18px 24px; font-size: 16px; }
+.menu-start-hint { font-size: 11px; margin-top: 14px; }
+.menu-panel { padding: 28px; background: linear-gradient(145deg, rgba(18, 35, 56, .92), rgba(8, 16, 31, .95)); border: 1px solid #294259; border-top: 2px solid #63f5ff; border-radius: 16px; box-shadow: 0 24px 60px rgba(0, 0, 0, .25); }
+.menu-panel-heading { display: block; width: 100%; text-align: left; font-size: 15px; letter-spacing: 2px; color: #e1f2ff; }
+.menu-panel-heading span { display: block; margin-top: 8px; color: #7394ab; font-size: 9px; letter-spacing: 1px; }
+#startScreen .controls-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 24px 0; gap: 10px; }
+#startScreen .control-card { padding: 20px 8px; }
+#startScreen .key-badge { font-size: 11px; }
+#startScreen .control-desc { font-size: 10px; margin-top: 12px; }
+#startScreen .menu-briefing { font-size: 12px; line-height: 1.8; }
+.menu-briefing-title { font-size: 10px; }
+.menu-record { margin-top: 24px; padding-top: 22px; justify-content: space-between; }
+.menu-record strong { font-size: 28px; }
+.menu-credit { width: min(100%, 1120px); margin-top: 28px; text-align: left; font-size: 11px; }
+}
+@media (min-width: 1000px) and (max-height: 740px) {
+.menu-emblem { width: 170px; height: 119px; margin-bottom: 8px; }
+.menu-panel { padding: 22px; }
+#startScreen .control-card { padding: 14px 6px; }
+#startScreen .menu-trigger-btn { margin-top: 0; margin-bottom: 16px; }
+.menu-credit { margin-bottom: 0; margin-top: 18px; }
+}
