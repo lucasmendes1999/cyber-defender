@@ -151,6 +151,7 @@ const ctx = canvas.getContext('2d');
 const pauseScreen = document.getElementById('pauseScreen');
 const startScreen = document.getElementById('startScreen');
 const gameOverScreen = document.getElementById('gameOverScreen');
+const victoryScreen = document.getElementById('victoryScreen');
 const damageVignette = document.getElementById('damageVignette');
 const btnStart = document.getElementById('btnStart');
 const btnRestart = document.getElementById('btnRestart');
@@ -274,7 +275,8 @@ btnTestSound.addEventListener('click', () => {
 const GameState = {
   MENU: 0,
   PLAYING: 1,
-  GAMEOVER: 2
+  GAMEOVER: 2,
+  VICTORY: 3
 };
 
 let currentState = GameState.MENU;
@@ -284,13 +286,16 @@ let wave = 1;
 const stages = [
   { name: 'ÓRBITA NEON', boss: 'SENTINELA', color: '#00ffff', background: '#071d30' },
   { name: 'NEBULOSA VIOLETA', boss: 'HIDRA', color: '#ff00ff', background: '#240b36' },
-  { name: 'NÚCLEO SOLAR', boss: 'ÔMEGA', color: '#ff8800', background: '#321207' }
+  { name: 'NÚCLEO SOLAR', boss: 'ÔMEGA', color: '#ff8800', background: '#321207' },
+  { name: 'FRONTEIRA SOMBRIA', boss: 'ESPECTRO', color: '#88aaff', background: '#10162f' },
+  { name: 'FORTALEZA DO VAZIO', boss: 'LEVIATÃ', color: '#ff3377', background: '#300b23' },
+  { name: 'ÚLTIMA ESTRELA', boss: 'IMPERADOR CYBER', color: '#ffe600', background: '#292007' }
 ];
 let stage = 0;
 let spawnedThisWave = 0;
 let transitionTimer = 0;
 let announcementTimer = 0;
-function stageData() { return stages[stage % stages.length]; }
+function stageData() { return stages[Math.min(stage, stages.length - 1)]; }
 function waveTarget() { return 6 + wave * 2 + Math.min(stage, 8) * 2; }
 function beginWave() {
   spawnedThisWave = 0;
@@ -300,8 +305,13 @@ function beginWave() {
   canvas.style.background = `radial-gradient(circle at center, ${stageData().background}, #030008)`;
 }
 function advanceWave() {
+  if (currentState !== GameState.PLAYING) return;
   lasers = lasers.filter(l => !l.isEnemy);
   if (wave % 6 === 0) {
+    if (stage === stages.length - 1) {
+      completeGame();
+      return;
+    }
     stage++;
     player.shield = Math.min(player.maxShield, player.shield + 35);
     player.bombs = Math.min(3, player.bombs + 1);
@@ -352,7 +362,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Escape') {
     if (isSettingsOpen) {
       closeSettingsModal();
-    } else if (currentState === GameState.PLAYING || currentState === GameState.GAMEOVER) {
+    } else if (currentState !== GameState.MENU) {
       goToMenu();
     }
     return;
@@ -372,7 +382,7 @@ window.addEventListener('keydown', (e) => {
   }
 
   // Tecla R - Reinício Rápido
-  if (e.code === 'KeyR' && (currentState === GameState.PLAYING || currentState === GameState.GAMEOVER)) {
+  if (e.code === 'KeyR' && currentState !== GameState.MENU) {
     startGame();
   }
 
@@ -474,6 +484,8 @@ btnMobileBomb.addEventListener('click', (e) => {
 btnStart.addEventListener('click', startGame);
 btnRestart.addEventListener('click', startGame);
 btnBackToMenu.addEventListener('click', goToMenu);
+document.getElementById('btnVictoryRestart').addEventListener('click', startGame);
+document.getElementById('btnVictoryMenu').addEventListener('click', goToMenu);
 
 function setPaused(paused) {
   isPaused = paused;
@@ -501,6 +513,7 @@ function updateMobileHUD() {
 }
 
 function goToMenu() {
+  victoryScreen.style.display = 'none';
   currentState = GameState.MENU;
   setPaused(false);
   startScreen.style.display = 'flex';
@@ -1513,7 +1526,26 @@ function triggerGameOver() {
   sound.explosion('boss');
 }
 
+function completeGame() {
+  currentState = GameState.VICTORY;
+  saveHighScore(score);
+  setPaused(false);
+  enemies = [];
+  lasers = [];
+  powerups = [];
+  activeBoss = null;
+  screenShake = 0;
+  damageFlashTimer = 0;
+  damageVignette.style.opacity = '0';
+  document.getElementById('victoryScore').textContent = score.toLocaleString();
+  document.getElementById('victoryHighScore').textContent = highScore.toLocaleString();
+  victoryScreen.style.display = 'flex';
+  document.getElementById('btnVictoryMenu').focus({ preventScroll: true });
+  sound.powerUp();
+}
+
 function startGame() {
+  victoryScreen.style.display = 'none';
   sound.init();
   currentState = GameState.PLAYING;
   setPaused(false);
@@ -1571,6 +1603,11 @@ function gameLoop(timestamp) {
       }
 
       spawnLogic(deltaTime);
+      if (currentState !== GameState.PLAYING) {
+        ctx.restore();
+        requestAnimationFrame(gameLoop);
+        return;
+      }
       player.update(deltaTime);
       checkCollisions();
 

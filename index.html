@@ -94,7 +94,7 @@
 
       <div class="instructions-box" style="margin-top: 12px; padding: 10px 18px;">
         <p style="color: #ffe600; font-size: 13px; margin-bottom: 2px;">⚡ TIRO 100% AUTOMÁTICO ATIVADO</p>
-        <p style="font-size: 12px;">Complete 5 ondas e enfrente o chefão de cada fase! A EMP causa 35 de dano nos chefões. Cada fase concluída recupera 35 de escudo e uma bomba.</p>
+        <p style="font-size: 12px;">Vença as 6 fases para salvar a galáxia! Cada fase tem 5 ondas e um chefão. A EMP causa 35 de dano nos chefões. Ao avançar de fase, recupere 35 de escudo e uma bomba.</p>
       </div>
       <p style="margin-top: 14px; font-size: 14px; color: #6bf;" class="record-badge">👑 RECORDE SUPREMO: <span id="menuHighScore" class="neon-yellow">0</span></p>
       <p style="margin-top: 10px; font-size: 12px; color: #8ec3e6; text-align: center;">Desenvolvido por Lucas Mendes</p>
@@ -121,8 +121,32 @@
         <button id="btnBackToMenu" class="arcade-btn" style="border-color: #ff00ff; color: #ff00ff;">MENU PRINCIPAL [ ESC ]</button>
       </div>
     </div>
+  <section id="victoryScreen" class="ui-layer interactive victory-screen" style="display: none;" aria-labelledby="victoryTitle">
+    <header class="victory-header">
+      <p class="victory-kicker">A GALÁXIA ESTÁ EM PAZ</p>
+      <h1 id="victoryTitle">MISSÃO CUMPRIDA</h1>
+      <p>Parabéns, piloto! Você finalizou as 6 fases de Cyber Neon Defender.</p>
+    </header>
+    <div class="victory-perspective">
+      <div class="victory-crawl">
+        <p class="victory-episode">EPISÓDIO VI</p>
+        <h2>A ÚLTIMA ESTRELA</h2>
+        <p>Após seis batalhas através das estrelas, um piloto corajoso enfrentou a frota Cyber e derrotou seu imperador.</p>
+        <p>O silêncio voltou ao espaço. Os mundos antes cercados pela escuridão puderam ver a luz de um novo amanhecer.</p>
+        <p>Com coragem, precisão e esperança, você salvou a galáxia. Sua vitória será lembrada entre as estrelas.</p>
+        <p class="victory-episode">FIM</p>
+        <p class="victory-credit">Desenvolvido por Lucas Mendes<br>Obrigado por jogar!</p>
+      </div>
+    </div>
+    <footer class="victory-footer">
+      <p>PONTUAÇÃO: <strong id="victoryScore">0</strong> · RECORDE: <strong id="victoryHighScore">0</strong></p>
+      <div class="victory-actions">
+        <button id="btnVictoryRestart" class="arcade-btn">JOGAR NOVAMENTE [ R ]</button>
+        <button id="btnVictoryMenu" class="arcade-btn">MENU PRINCIPAL [ ESC ]</button>
+      </div>
+    </footer>
+  </section>
   </div>
-
   <script src="game.js"></script>
   <script src="pwa.js"></script>
 </body>
