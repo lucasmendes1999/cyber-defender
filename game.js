@@ -289,14 +289,19 @@ const stages = [
   { name: 'NÚCLEO SOLAR', boss: 'ÔMEGA', color: '#ff8800', background: '#321207' },
   { name: 'FRONTEIRA SOMBRIA', boss: 'ESPECTRO', color: '#88aaff', background: '#10162f' },
   { name: 'FORTALEZA DO VAZIO', boss: 'LEVIATÃ', color: '#ff3377', background: '#300b23' },
-  { name: 'ÚLTIMA ESTRELA', boss: 'IMPERADOR CYBER', color: '#ffe600', background: '#292007' }
+  { name: 'ÚLTIMA ESTRELA', boss: 'KRAKEN CYBER', color: '#ffe600', background: '#292007' }
 ];
 let stage = 0;
 let spawnedThisWave = 0;
 let transitionTimer = 0;
 let announcementTimer = 0;
 function stageData() { return stages[Math.min(stage, stages.length - 1)]; }
-function waveTarget() { return 6 + wave * 2 + Math.min(stage, 8) * 2; }
+const lightEffectsMedia = window.matchMedia('(pointer: coarse), (max-width: 768px)');
+function lightEffects() { return lightEffectsMedia.matches; }
+function waveTarget() {
+  const localWave = (wave - 1) % 6 + 1;
+  return Math.min(lightEffects() ? 22 : 26, 6 + localWave * 2 + stage * 2);
+}
 function beginWave() {
   spawnedThisWave = 0;
   spawnTimer = 0;
@@ -854,6 +859,7 @@ class Player {
     this.tryShoot();
 
     [-9, 9].forEach(offsetX => {
+      if (particles.length >= (lightEffects() ? 100 : 220)) return;
       particles.push(new Particle(
         this.x + offsetX + (Math.random() * 4 - 2),
         this.y + 16,
@@ -1018,7 +1024,7 @@ class Enemy {
     this.data = EnemyType[typeKey];
     this.x = x ?? Math.random() * (width - 80) + 40;
     this.y = y ?? -40;
-    const waveScale = this.typeKey === 'BOSS' ? (wave - 1) * 8 : (wave - 1) * 0.4;
+    const waveScale = this.typeKey === 'BOSS' ? stage * 28 : stage * 0.65 + ((wave - 1) % 6) * 0.2;
     this.hp = this.data.hp + waveScale;
     if (typeKey === 'BOSS') this.data = { ...this.data, color: stageData().color };
     this.maxHp = this.hp;
@@ -1028,6 +1034,16 @@ class Enemy {
     this.timer = Math.random() * 100;
     this.bossMotion = 0;
     this.shootTimer = 0;
+    this.isKraken = typeKey === 'BOSS' && stage === stages.length - 1;
+  }
+
+  tentacleTip(index) {
+    const side = index < 2 ? -1 : 1;
+    const outer = index % 2;
+    return {
+      x: side * this.radius * (outer ? 1.8 : 1.05) + Math.sin(this.timer * 2 + index) * 12,
+      y: this.radius * (outer ? 1.15 : 1.85) + Math.cos(this.timer * 2 + index) * 10
+    };
   }
 
   update(deltaTime = 1000 / 60) {
@@ -1063,9 +1079,17 @@ class Enemy {
         this.x += Math.max(-maxMove, Math.min(maxMove, targetX - this.x));
       }
       this.shootTimer++;
-      if (this.shootTimer > (this.hp < this.maxHp / 2 ? 55 : 95)) {
+      if (this.shootTimer > (this.hp < this.maxHp / 2 ? 70 : 110)) {
         this.shootTimer = 0;
-        if (stage % 3 === 0) {
+        const enemyShots = lasers.filter(l => l.isEnemy && !l.markedForDeletion).length;
+        if (enemyShots > (lightEffects() ? 24 : 40)) return;
+        if (this.isKraken) {
+          for (let i = 0; i < 4; i++) {
+            const tip = this.tentacleTip(i);
+            const angle = Math.atan2(player.y - (this.y + tip.y), player.x - (this.x + tip.x));
+            lasers.push(new Laser(this.x + tip.x, this.y + tip.y, Math.cos(angle) * 2.5, Math.sin(angle) * 2.5, true, this.data.color));
+          }
+        } else if (stage % 3 === 0) {
           [-1.4, 0, 1.4].forEach(vx => lasers.push(new Laser(this.x, this.y + this.radius, vx, 2.6, true, this.data.color)));
         } else if (stage % 3 === 1) {
           const angle = Math.atan2(player.y - this.y, player.x - this.x);
@@ -1122,6 +1146,43 @@ class Enemy {
       ctx.fill();
       ctx.stroke();
     } else if (this.typeKey === 'BOSS') {
+      if (this.isKraken) {
+        // Quatro curvas animadas: tentáculos sem entidades ou partículas extras.
+        ctx.shadowBlur = lightEffects() ? 0 : 10;
+        ctx.lineCap = 'round';
+        for (let i = 0; i < 4; i++) {
+          const tip = this.tentacleTip(i);
+          const side = i < 2 ? -1 : 1;
+          ctx.beginPath();
+          ctx.moveTo(side * 26, 12);
+          ctx.bezierCurveTo(side * 80, 20, tip.x - side * 30, tip.y - 40, tip.x, tip.y);
+          ctx.strokeStyle = '#795121';
+          ctx.lineWidth = 12;
+          ctx.stroke();
+          ctx.strokeStyle = this.data.color;
+          ctx.lineWidth = 3;
+          ctx.stroke();
+          ctx.fillStyle = '#ff5577';
+          ctx.beginPath();
+          ctx.arc(tip.x, tip.y, 5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.fillStyle = '#27182c';
+        ctx.strokeStyle = this.data.color;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 40, 46, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#ff5577';
+        ctx.beginPath();
+        ctx.ellipse(0, -5, 22, 13, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ffe600';
+        ctx.beginPath();
+        ctx.arc(0, -5, 7, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
       // Disco alienígena com cúpula, casco metálico e luzes de propulsão.
       const r = this.radius;
       const hull = ctx.createLinearGradient(0, -r * 0.25, 0, r * 0.55);
@@ -1162,6 +1223,7 @@ class Enemy {
         ctx.fill();
       }
 
+      }
       ctx.restore();
       ctx.save();
       const barW = 120;
@@ -1196,6 +1258,8 @@ let spawnTimer = 0;
 let activeBoss = null;
 
 function createExplosion(x, y, color, count = 20) {
+  const budget = (lightEffects() ? 100 : 220) - particles.length;
+  count = Math.min(lightEffects() ? Math.ceil(count / 2) : count, Math.max(0, budget));
   for (let i = 0; i < count; i++) {
     particles.push(new Particle(x, y, color, 3.5, 5, 35));
   }
@@ -1331,7 +1395,9 @@ function spawnLogic(deltaTime) {
   if (activeBoss) return;
 
   spawnTimer += deltaTime;
-  const spawnInterval = Math.max(400, 1100 - wave * 50);
+  // Aguarda espaço na tela antes de continuar a onda, sem acumular spawns.
+  if (enemies.filter(e => !e.markedForDeletion).length >= (lightEffects() ? 6 : 9)) return;
+  const spawnInterval = Math.max(lightEffects() ? 850 : 650, 1100 - stage * 60);
   if (spawnTimer >= spawnInterval) {
     spawnTimer = 0;
     const rand = Math.random();
